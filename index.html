@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SpeakUp">
+<meta name="theme-color" content="#00897b">
+<title>SpeakUp 口语训练</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #f0f4f4; color: #1a202c;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+body { padding-bottom: env(safe-area-inset-bottom); }
+#app { max-width: 640px; margin: 0 auto; min-height: 100vh; position: relative; }
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.page.with-nav { padding-bottom: 76px; }
+.topbar {
+  position: sticky; top: 0; z-index: 10; background: #fff;
+  padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top));
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.topbar-title { font-size: 18px; font-weight: 600; }
+.topbar .back {
+  background: none; border: none; font-size: 22px; cursor: pointer;
+  padding: 0 8px 0 0; color: #00897b; font-weight: bold;
+}
+.progress { height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; flex: 1; }
+.progress-bar { height: 100%; background: #00897b; border-radius: 2px; transition: width 0.3s; }
+.content { flex: 1; padding: 16px 16px 32px; }
+.card {
+  background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card.highlight { border-left: 4px solid #00897b; }
+.card.tap { cursor: pointer; transition: transform 0.1s; }
+.card.tap:active { transform: scale(0.98); }
+.card.center { text-align: center; }
+.row { display: flex; align-items: center; gap: 12px; }
+.bold { font-weight: 600; }
+.muted { color: #6b7280; }
+.small { font-size: 13px; }
+.tiny { font-size: 12px; }
+.btn {
+  display: block; width: 100%; padding: 14px; border-radius: 12px;
+  font-size: 16px; font-weight: 600; border: none; cursor: pointer;
+  margin-top: 12px; transition: opacity 0.15s; font-family: inherit;
+}
+.btn:active { opacity: 0.8; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.primary { background: #00897b; color: #fff; }
+.btn.danger { background: #e53935; color: #fff; }
+.btn.ghost { background: transparent; color: #00897b; }
+.btn.danger-text { color: #e53935; }
+.btn.mini { padding: 8px 14px; width: auto; font-size: 13px; margin: 0; display: inline-block; }
+.chip {
+  display: inline-block; padding: 4px 12px; border-radius: 999px;
+  background: #e0f2f1; color: #00796b; font-size: 12px; font-weight: 600;
+}
+.level-badge {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: bold; font-size: 16px;
+}
+.level-badge.big { width: 96px; height: 96px; font-size: 30px; }
+.level-chip { padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.level-dot {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: bold; font-size: 12px; flex-shrink: 0;
+}
+.chev { font-size: 24px; color: #d1d5db; }
+.section-title { font-weight: 600; margin: 12px 4px 8px; }
+.welcome { justify-content: center; padding: 32px 24px; }
+.welcome-inner { text-align: center; }
+.logo { font-size: 72px; margin-bottom: 8px; }
+.welcome h1 { font-size: 32px; margin: 8px 0; }
+.subtitle { color: #6b7280; margin-bottom: 32px; }
+.hint { color: #9ca3af; font-size: 13px; margin-top: 12px; line-height: 1.6; }
+.question { font-size: 22px; font-weight: 600; margin: 16px 0 24px; line-height: 1.4; }
+.options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.option {
+  display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 12px;
+  border: 1.5px solid #e5e7eb; background: #fff; font-size: 16px; text-align: left;
+  cursor: pointer; transition: all 0.15s; font-family: inherit; color: inherit;
+}
+.option.selected { border-color: #00897b; border-width: 2px; background: #e0f2f1; font-weight: 600; }
+.option-letter {
+  width: 28px; height: 28px; border-radius: 50%; background: #f3f4f6;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 13px; flex-shrink: 0;
+}
+.option.selected .option-letter { background: #00897b; color: #fff; }
+.result { justify-content: center; padding: 32px 24px; text-align: center; }
+.result h1 { margin: 16px 0 4px; font-size: 26px; }
+.weak { color: #f57c00; font-size: 13px; margin: 12px 0; }
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; max-width: 640px; margin: 0 auto;
+  background: #fff; border-top: 1px solid #e5e7eb;
+  display: flex; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 20;
+}
+.nav-item {
+  flex: 1; background: none; border: none; padding: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: #9ca3af; font-size: 11px; cursor: pointer; font-family: inherit;
+}
+.nav-item.active { color: #00897b; font-weight: 600; }
+.nav-icon { font-size: 22px; }
+.nav-label { font-size: 11px; }
+.sentence-card { padding: 20px; }
+.sentence-en { font-size: 20px; font-weight: 600; line-height: 1.5; flex: 1; }
+.icon-btn {
+  background: #e0f2f1; border: none; border-radius: 50%;
+  width: 40px; height: 40px; font-size: 18px; cursor: pointer;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+}
+.tip { font-size: 12px; color: #00897b; margin-top: 10px; line-height: 1.5; }
+.select, .input {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid #e5e7eb; background: #fff; font-size: 15px;
+  margin-bottom: 12px; font-family: inherit; color: inherit;
+}
+.select {
+  padding-right: 40px; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+}
+.input:focus, .select:focus { outline: none; border-color: #00897b; }
+.field-label { font-size: 13px; color: #4b5563; margin-bottom: 6px; font-weight: 500; }
+.recording-box { text-align: center; padding: 20px 0; }
+.timer { font-size: 40px; font-weight: 700; color: #00897b; }
+.recognized { margin-top: 8px; color: #6b7280; font-size: 14px; min-height: 20px; line-height: 1.5; }
+.metric-row { display: flex; justify-content: space-between; padding: 6px 0; }
+.metric-label { color: #4b5563; }
+.metric-value { font-weight: 600; }
+.homework-item { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.homework-item input { margin-top: 3px; width: 20px; height: 20px; accent-color: #00897b; flex-shrink: 0; }
+.homework-item.done .bold { text-decoration: line-through; color: #9ca3af; }
+.ai-card { background: linear-gradient(135deg, #e3f2fd 0%, #e0f2f1 100%); border-radius: 14px; padding: 16px; margin-top: 12px; }
+.ai-header { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #00695c; margin-bottom: 12px; }
+.ai-scores { display: flex; gap: 8px; margin-bottom: 12px; }
+.ai-score-box { flex: 1; background: #fff; border-radius: 10px; padding: 10px 6px; text-align: center; }
+.ai-score-num { font-size: 22px; font-weight: 700; color: #00796b; }
+.ai-score-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
+.ai-advice { background: #fff; border-radius: 10px; padding: 12px; font-size: 13px; line-height: 1.6; color: #37474f; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #b2dfdb; border-top-color: #00897b; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.status-ok { color: #2e7d32; font-size: 13px; margin-top: 8px; }
+.status-err { color: #c62828; font-size: 13px; margin-top: 8px; line-height: 1.5; }
+.badge-ok { background: #e8f5e9; color: #2e7d32; }
+.badge-off { background: #f3f4f6; color: #6b7280; }
+@media (min-width: 640px) {
+  body { background: #e5e7eb; }
+  #app { box-shadow: 0 0 40px rgba(0,0,0,0.08); background: #f0f4f4; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ==================== 等级配置 ====================
+const LEVELS = ['A1','A2','B1','B2','C1','C2'];
+const LEVEL_INFO = {
+  A1: { title:'入门', color:'#4caf50', desc:'能用简单句介绍自己、问路、点单。先练短句和高频词。', wpmLow:60, wpmHigh:80 },
+  A2: { title:'基础', color:'#8bc34a', desc:'能应对日常场景对话。重点练常用句型和自然停顿。', wpmLow:70, wpmHigh:90 },
+  B1: { title:'进阶', color:'#009688', desc:'能描述经历、表达简单观点。重点练连接词和长句节奏。', wpmLow:90, wpmHigh:110 },
+  B2: { title:'高阶', color:'#2196f3', desc:'能较流畅地讨论熟悉话题。重点练观点表达和逻辑衔接。', wpmLow:100, wpmHigh:130 },
+  C1: { title:'流利', color:'#3f51b5', desc:'能自如表达复杂想法。重点练地道搭配和语域切换。', wpmLow:120, wpmHigh:150 },
+  C2: { title:'精通', color:'#9c27b0', desc:'接近母语水平。重点练论证严密性和修辞表达。', wpmLow:130, wpmHigh:165 },
+};
+
+// ==================== 题库（30题，每级5题） ====================
+const QUESTION_POOL = [
+  // A1
+  { prompt:'“苹果”的英文是？', options:['apple','banana','orange','pear'], answer:0, level:'A1', skill:'词汇' },
+  { prompt:'I ___ a student.', options:['am','is','are','be'], answer:0, level:'A1', skill:'语法' },
+  { prompt:'“Thank you” 的意思是？', options:['谢谢','对不起','再见','你好'], answer:0, level:'A1', skill:'词汇' },
+  { prompt:'This ___ my book.', options:['is','are','am','be'], answer:0, level:'A1', skill:'语法' },
+  { prompt:'“brother” 的意思是？', options:['兄弟','姐妹','父母','朋友'], answer:0, level:'A1', skill:'词汇' },
+  // A2
+  { prompt:'She ___ to school every day.', options:['goes','go','going','gone'], answer:0, level:'A2', skill:'语法' },
+  { prompt:'哪个词表示“昨天”？', options:['yesterday','tomorrow','today','tonight'], answer:0, level:'A2', skill:'词汇' },
+  { prompt:'There ___ some milk in the fridge.', options:['is','are','have','has'], answer:0, level:'A2', skill:'语法' },
+  { prompt:'“expensive” 最接近的意思是？', options:['昂贵的','便宜的','新鲜的','漂亮的'], answer:0, level:'A2', skill:'词汇' },
+  { prompt:'I ___ TV when you called me.', options:['was watching','watched','watch','have watched'], answer:0, level:'A2', skill:'语法' },
+  // B1
+  { prompt:'If it ___ tomorrow, we will stay at home.', options:['rains','rained','will rain','raining'], answer:0, level:'B1', skill:'语法' },
+  { prompt:'“exhausted” 最接近的意思是？', options:['very tired','very happy','very hungry','very busy'], answer:0, level:'B1', skill:'词汇' },
+  { prompt:'He has lived here ___ 2010.', options:['since','for','from','at'], answer:0, level:'B1', skill:'语法' },
+  { prompt:'“look forward to” 的意思是？', options:['期待','回头看','向前看','仔细看'], answer:0, level:'B1', skill:'词汇' },
+  { prompt:'She asked me where I ___ from.', options:['came','come','coming','had come'], answer:0, level:'B1', skill:'语法' },
+  // B2
+  { prompt:'The report ___ by the end of this week.', options:['will be finished','will finish','finishes','finishing'], answer:0, level:'B2', skill:'语法' },
+  { prompt:'She suggested that he ___ a doctor.', options:['see','sees','saw','seeing'], answer:0, level:'B2', skill:'语法' },
+  { prompt:'The new policy will ___ affect small businesses.', options:['significantly','significant','significance','signify'], answer:0, level:'B2', skill:'词汇' },
+  { prompt:'“The car broke down.” 中 broke down 的意思是？', options:['抛锚了','破产了','拆开了','加速了'], answer:0, level:'B2', skill:'词汇' },
+  { prompt:'Had I known about it, I ___ earlier.', options:['would have come','would come','came','had come'], answer:0, level:'B2', skill:'语法' },
+  // C1
+  { prompt:'“The plan is still up in the air.” 意思是？', options:['尚未确定','已经通过','被否决了','正在执行'], answer:0, level:'C1', skill:'词汇' },
+  { prompt:'Not until he arrived ___ that the meeting had been cancelled.', options:['did he realize','he realized','he did realize','realized he'], answer:0, level:'C1', skill:'语法' },
+  { prompt:'“take something with a grain of salt” 意思是？', options:['半信半疑','一丝不苟','小题大做','尝一小口'], answer:0, level:'C1', skill:'词汇' },
+  { prompt:"It's high time we ___ this issue seriously.", options:['took','take','will take','have taken'], answer:0, level:'C1', skill:'语法' },
+  { prompt:'“compelling” 最接近的意思是？', options:['令人信服的','强制性的','令人困惑的','无足轻重的'], answer:0, level:'C1', skill:'词汇' },
+  // C2
+  { prompt:'His argument is ___: it assumes what it tries to prove.', options:['circular','ambiguous','redundant','verbose'], answer:0, level:'C2', skill:'词汇' },
+  { prompt:'___ for your help, we would have failed.', options:['Were it not','If it were not','Had it not been','Should it not be'], answer:0, level:'C2', skill:'语法' },
+  { prompt:'“ostensibly” 最接近的意思是？', options:['表面上','实际上','偶然地','明显地'], answer:0, level:'C2', skill:'词汇' },
+  { prompt:'Only after the meeting ___ the extent of the problem.', options:['did we understand','we understood','we did understand','understood we'], answer:0, level:'C2', skill:'语法' },
+  { prompt:'“quintessential” 最接近的意思是？', options:['最典型的','最罕见的','最古老的','最现代的'], answer:0, level:'C2', skill:'词汇' },
+];
+
+// 每级抽几题
+const PER_LEVEL = 3;
+
+function buildTestSet() {
+  const picked = [];
+  for (const lv of LEVELS) {
+    const pool = QUESTION_POOL.filter(q => q.level === lv);
+    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+    picked.push(...shuffled.slice(0, Math.min(PER_LEVEL, pool.length)));
+  }
+  return picked;
+}
+
+// ==================== 素材（每级2套，共12套） ====================
+const MATERIALS = [
+  { id:'a1_1', level:'A1', title:'自我介绍', scene:'初次见面', sentences:[
+    { en:'Hi, my name is Li Ming.', zh:'你好，我叫李明。', tip:'name is 连读成 /neɪmɪz/' },
+    { en:'I am from China.', zh:'我来自中国。', tip:'I am 可弱读为 /aɪm/' },
+    { en:'I am a student.', zh:'我是一名学生。', tip:'重音放在 student 上' },
+  ]},
+  { id:'a1_2', level:'A1', title:'问路', scene:'在街上', sentences:[
+    { en:'Excuse me, where is the station?', zh:'打扰一下，车站在哪里？', tip:'Excuse me 语气轻快' },
+    { en:'Go straight and turn left.', zh:'直走然后左转。', tip:'straight 尾音轻收' },
+    { en:'Thank you very much.', zh:'非常感谢。', tip:'very much 连读更自然' },
+  ]},
+  { id:'a2_1', level:'A2', title:'在咖啡店', scene:'点单', sentences:[
+    { en:'Can I have a latte, please?', zh:'我可以要一杯拿铁吗？', tip:'please 语调上扬更礼貌' },
+    { en:'How much is it?', zh:'多少钱？', tip:'much 和 is 连读' },
+    { en:'Thank you, have a nice day.', zh:'谢谢，祝你今天愉快。', tip:'nice day 重音在 nice' },
+  ]},
+  { id:'a2_2', level:'A2', title:'购物', scene:'买衣服', sentences:[
+    { en:'Do you have this in a larger size?', zh:'这个有大一号的吗？', tip:'larger size 重音在 lar' },
+    { en:'How about this one?', zh:'这件怎么样？', tip:'about 轻读' },
+    { en:"I'll take it.", zh:'我要这个。', tip:"I'll 读成 /aɪl/" },
+  ]},
+  { id:'b1_1', level:'B1', title:'聊周末', scene:'朋友闲聊', sentences:[
+    { en:'Last weekend I went hiking with a couple of friends.', zh:'上周末我和几个朋友去徒步了。', tip:'couple of 连读成 /kʌpləv/' },
+    { en:'The weather was perfect, so we stayed outside all day.', zh:'天气很好，所以我们一整天都在外面。', tip:'so 后面稍作停顿' },
+    { en:"I'd love to go again if you're interested.", zh:'如果你有兴趣，我很想再去一次。', tip:"I'd 读成 /aɪd/" },
+  ]},
+  { id:'b1_2', level:'B1', title:'表达喜好', scene:'聊电影', sentences:[
+    { en:"I'm really into science fiction movies.", zh:'我很喜欢科幻电影。', tip:'be into 表示喜欢' },
+    { en:'What kind of films do you like?', zh:'你喜欢什么类型的电影？', tip:'kind of 连读' },
+    { en:"It's not really my cup of tea.", zh:'那不太合我的口味。', tip:'cup of tea 连读' },
+  ]},
+  { id:'b2_1', level:'B2', title:'表达观点', scene:'讨论工作方式', sentences:[
+    { en:'From my point of view, remote work can boost productivity.', zh:'在我看来，远程办公能提升效率。', tip:'point of view 连读' },
+    { en:'That said, it really depends on the kind of job you do.', zh:'话虽如此，这确实取决于你做什么工作。', tip:'That said 后停顿一下' },
+    { en:"I'd argue that a mix of both works best for most people.", zh:'我认为对大多数人来说，两者结合效果最好。', tip:"I'd argue 是高频观点句型" },
+  ]},
+  { id:'b2_2', level:'B2', title:'讨论计划', scene:'商量出行', sentences:[
+    { en:'I was wondering if we could push the meeting to Friday.', zh:'我在想我们能不能把会议推到周五。', tip:'I was wondering 更委婉' },
+    { en:"That works for me, as long as it's in the morning.", zh:'我没问题，只要是在上午。', tip:'as long as 轻读' },
+    { en:"Let's confirm the details by tomorrow.", zh:'我们明天之前确认细节吧。', tip:'confirm 重音在第二音节' },
+  ]},
+  { id:'c1_1', level:'C1', title:'会议发言', scene:'项目会议', sentences:[
+    { en:"Before we move on, I'd like to flag a potential risk.", zh:'在继续之前，我想指出一个潜在风险。', tip:'flag a risk 是地道表达' },
+    { en:"It's worth bearing in mind that our budget is fairly tight.", zh:'值得记住的是，我们的预算相当紧张。', tip:'bearing in mind 轻读' },
+    { en:'Perhaps we could circle back to this once we have more data.', zh:'也许等我们有更多数据后再回来讨论这一点。', tip:'circle back 是会议常用语' },
+  ]},
+  { id:'c1_2', level:'C1', title:'委婉反驳', scene:'观点分歧', sentences:[
+    { en:"I see your point, but I'm not entirely convinced.", zh:'我理解你的观点，但我不完全认同。', tip:'entirely 重读' },
+    { en:"That's a fair concern; however, the data suggests otherwise.", zh:'这个担忧合理，但数据显示并非如此。', tip:'however 前停顿' },
+    { en:'Could we look at this from a different angle?', zh:'我们能不能换个角度看这个问题？', tip:'angle 语调上扬' },
+  ]},
+  { id:'c2_1', level:'C2', title:'辩论与论证', scene:'学术讨论', sentences:[
+    { en:"While the proposal is appealing in principle, it's arguably unworkable in practice.", zh:'虽然这个提议原则上很吸引人，但实践中恐怕行不通。', tip:'arguably 用于缓和语气' },
+    { en:'The evidence, such as it is, hardly bears out that claim.', zh:'现有的这点证据几乎无法支持那个说法。', tip:'such as it is 是插入语' },
+    { en:"I'm inclined to think the benefits, on balance, outweigh the drawbacks.", zh:'我倾向于认为总体而言利大于弊。', tip:'on balance 重读' },
+  ]},
+  { id:'c2_2', level:'C2', title:'抽象讨论', scene:'哲学式对话', sentences:[
+    { en:'The notion of progress is, at best, a contested one.', zh:'进步这一概念充其量是有争议的。', tip:'at best 插入语轻读' },
+    { en:"One might argue that technology has eroded our capacity for silence.", zh:'有人可能会说，技术侵蚀了我们静默的能力。', tip:'might argue 语气克制' },
+    { en:"It's a trade-off we have yet to fully come to terms with.", zh:'这是一个我们尚未完全接受的权衡。', tip:'come to terms with 连读' },
+  ]},
+];
+
+// ==================== 作业（每级3个，共18个） ====================
+const HOMEWORK = [
+  { id:'hw_a1_1', level:'A1', title:'朗读自我介绍 3 句', detail:'在跟练页朗读“自我介绍”素材，目标语速 60–80 词/分。' },
+  { id:'hw_a1_2', level:'A1', title:'用 3 句话介绍你的家乡', detail:'参考句型：I am from… / It is a … city. / I like it because…' },
+  { id:'hw_a1_3', level:'A1', title:'跟读问路对话', detail:'朗读“问路”素材 3 遍，注意 Excuse me 的语气。' },
+  { id:'hw_a2_1', level:'A2', title:'完成咖啡店点单跟读', detail:'朗读“在咖啡店”素材 3 遍，注意 please 的语气。' },
+  { id:'hw_a2_2', level:'A2', title:'自编一段 30 秒购物对话', detail:'包含问价、数量、道谢三个功能句。' },
+  { id:'hw_a2_3', level:'A2', title:'用英语描述你昨天做了什么', detail:'至少 4 句话，使用一般过去时。' },
+  { id:'hw_b1_1', level:'B1', title:'复述你的上个周末', detail:'用 5 句话，至少使用 2 个连接词（so / because / although）。' },
+  { id:'hw_b1_2', level:'B1', title:'跟读“聊周末”素材', detail:'目标语速 90–110 词/分，注意连读。' },
+  { id:'hw_b1_3', level:'B1', title:'推荐一部你喜欢的电影', detail:'用 5 句话说明片名、类型、剧情和推荐理由。' },
+  { id:'hw_b2_1', level:'B2', title:'就远程办公做 1 分钟陈述', detail:'结构：观点 → 理由 → 让步 → 结论。' },
+  { id:'hw_b2_2', level:'B2', title:'跟读“表达观点”素材', detail:'目标语速 100–130 词/分，注意句间停顿。' },
+  { id:'hw_b2_3', level:'B2', title:'委婉地提出反对意见', detail:'用 I see your point, but… 开头，说 4 句话。' },
+  { id:'hw_c1_1', level:'C1', title:'模拟会议发言 2 分钟', detail:'包含提出风险、给出依据、提出下一步三个部分。' },
+  { id:'hw_c1_2', level:'C1', title:'跟读“会议发言”素材', detail:'目标语速 120–150 词/分，重点练弱读。' },
+  { id:'hw_c1_3', level:'C1', title:'练习委婉反驳', detail:'跟读“委婉反驳”素材，并用类似结构反驳一个常见观点。' },
+  { id:'hw_c2_1', level:'C2', title:'就一个争议话题做 2 分钟论证', detail:'要求：让步 + 反驳 + 结论，至少用一个插入语。' },
+  { id:'hw_c2_2', level:'C2', title:'跟读“辩论与论证”素材', detail:'目标语速 130–165 词/分，注意重音对比。' },
+  { id:'hw_c2_3', level:'C2', title:'抽象话题即兴 90 秒', detail:'选“进步”“幸福”“自由”之一，做有层次的短论。' },
+];
+
+// ==================== 状态 ====================
+let state = {
+  view:'welcome', tab:'material',
+  level:null,
+  testSet:[], testIndex:0, testAnswers:[], lastResult:null,
+  selectedSentence:0, recording:false, seconds:0, recognized:'',
+  lastTraining:null, aiLoading:false,
+  homeworkDone:{}, bestWpm:{}, records:[],
+  materialDetail:null, speechUnavailable:false,
+  aiConfig:{ endpoint:'', apiKey:'', model:'Qwen/Qwen2.5-7B-Instruct' },
+  aiTestResult:null,
+};
+
+let recognition = null;
+let timerId = null;
+
+// ==================== 持久化 ====================
+function save() {
+  try {
+    localStorage.setItem('speakup_v2', JSON.stringify({
+      level: state.level,
+      homeworkDone: state.homeworkDone,
+      bestWpm: state.bestWpm,
+      records: state.records.slice(0,50),
+      aiConfig: state.aiConfig,
+    }));
+  } catch(e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('speakup_v2') || localStorage.getItem('speakup_v1');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.level && LEVEL_INFO[d.level]) { state.level = d.level; state.view = 'main'; }
+    state.homeworkDone = d.homeworkDone || {};
+    state.bestWpm = d.bestWpm || {};
+    state.records = d.records || [];
+    if (d.aiConfig) state.aiConfig = Object.assign(state.aiConfig, d.aiConfig);
+  } catch(e) {}
+}
+
+// ==================== 工具 ====================
+function speak(text) {
+  if (!('speechSynthesis' in window)) { alert('当前浏览器不支持语音朗读'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.9; u.pitch = 1.0;
+  window.speechSynthesis.speak(u);
+}
+function wordCount(s) { return s.trim().split(/\s+/).filter(Boolean).length; }
+function similarity(spoken, reference) {
+  const clean = s => s.toLowerCase().replace(/[^\w\s']/g,' ').replace(/\s+/g,' ').trim();
+  const a = clean(spoken).split(' ').filter(Boolean);
+  const b = clean(reference).split(' ').filter(Boolean);
+  if (!b.length) return 0;
+  const rem = b.slice(); let m = 0;
+  for (const w of a) { const i = rem.indexOf(w); if (i>=0){ m++; rem.splice(i,1);} }
+  return m / b.length;
+}
+function getSentences(level) {
+  return MATERIALS.filter(m => LEVELS.indexOf(m.level) <= LEVELS.indexOf(level)).flatMap(m => m.sentences);
+}
+
+// ==================== AI 服务 ====================
+function aiEnabled() { return !!state.aiConfig.endpoint && !!state.aiConfig.apiKey && !!state.aiConfig.model; }
+
+async function testAIConnection() {
+  state.aiTestResult = { loading:true };
+  render();
+  try {
+    const res = await fetch(state.aiConfig.endpoint, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + state.aiConfig.apiKey },
+      body: JSON.stringify({
+        model: state.aiConfig.model,
+        messages:[{ role:'user', content:'回复 OK 两个字母即可' }],
+        temperature: 0,
+        max_tokens: 10,
+      }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      state.aiTestResult = { ok:false, msg:`HTTP ${res.status}：${txt.slice(0,200)}` };
+    } else {
+      const data = await res.json();
+      const reply = data?.choices?.[0]?.message?.content || '(无内容)';
+      state.aiTestResult = { ok:true, msg:'连接成功，模型回复：' + reply.slice(0,60) };
+    }
+  } catch (e) {
+    state.aiTestResult = { ok:false, msg:'请求失败：' + (e.message || e) + '\n常见原因：CORS 跨域被拦截、API Key 错误、网络不通。建议换用硅基流动（https://api.siliconflow.cn/v1/chat/completions）。' };
+  }
+  render();
+}
+
+async function requestAIScore(spoken, reference) {
+  if (!aiEnabled()) return null;
+  const sys = '你是英语口语教练。请根据用户说的英文与原句的匹配程度，给出三维评分（0-100整数）：accuracy（发音/单词准确度）、grammar（语法正确性）、fluency（流利度），并用1-2句中文给出改进建议。只返回JSON，不要多余文字。格式：{"accuracy":85,"grammar":90,"fluency":80,"advice":"..."}';
+  const user = `原句：${reference}\n用户说的：${spoken || '（未识别到语音）'}`;
+  const res = await fetch(state.aiConfig.endpoint, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + state.aiConfig.apiKey },
+    body: JSON.stringify({
+      model: state.aiConfig.model,
+      messages:[{ role:'system', content: sys }, { role:'user', content: user }],
+      temperature: 0.3,
+    }),
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content || '';
+  const s = content.indexOf('{'); const e = content.lastIndexOf('}');
+  if (s < 0 || e < 0) throw new Error('返回内容无法解析');
+  const parsed = JSON.parse(content.slice(s, e+1));
+  return {
+    accuracy: Math.round(parsed.accuracy || 0),
+    grammar: Math.round(parsed.grammar || 0),
+    fluency: Math.round(parsed.fluency || 0),
+    advice: parsed.advice || '',
+  };
+}
+
+// ==================== 渲染 ====================
+function render() {
+  const y = window.scrollY;
+  const app = document.getElementById('app');
+  if (state.view === 'welcome') app.innerHTML = renderWelcome();
+  else if (state.view === 'test') app.innerHTML = renderTest();
+  else if (state.view === 'result') app.innerHTML = renderResult();
+  else if (state.view === 'main') app.innerHTML = renderMain();
+  else if (state.view === 'material_detail') app.innerHTML = renderMaterialDetail();
+  else if (state.view === 'settings') app.innerHTML = renderSettings();
+  else app.innerHTML = renderWelcome();
+  window.scrollTo(0, y);
+}
+
+function renderWelcome() {
+  return `
+    <div class="page welcome">
+      <div class="welcome-inner">
+        <div class="logo">🎙️</div>
+        <h1>SpeakUp</h1>
+        <p class="subtitle">测水平 · 积累素材 · 跟练评分</p>
+        <button class="btn primary" onclick="startTest()">开始水平测试</button>
+        <p class="hint">每次从 30 道题库随机抽 18 题，约需 3 分钟。<br>测完自动判定 A1–C2 等级，推荐对应素材。</p>
+      </div>
+    </div>`;
+}
+
+function renderTest() {
+  const q = state.testSet[state.testIndex];
+  const total = state.testSet.length;
+  const selected = state.testAnswers[state.testIndex];
+  return `
+    <div class="page">
+      <div class="topbar">
+        <div class="topbar-title" style="flex-shrink:0">测试 ${state.testIndex+1}/${total}</div>
+        <div class="progress"><div class="progress-bar" style="width:${(state.testIndex+1)/total*100}%"></div></div>
+      </div>
+      <div class="content">
+        <span class="chip">${q.skill} · ${q.level}</span>
+        <h2 class="question">${q.prompt}</h2>
+        <div class="options">
+          ${q.options.map((opt,i)=>`
+            <button class="option ${selected===i?'selected':''}" onclick="selectAnswer(${i})">
+              <span class="option-letter">${String.fromCharCode(65+i)}</span>
+              <span>${opt}</span>
+            </button>`).join('')}
+        </div>
+        <button class="btn primary" ${selected===undefined?'disabled':''} onclick="nextQuestion()">
+          ${state.testIndex===total-1?'查看结果':'下一题'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function renderResult() {
+  const r = state.lastResult;
+  const info = LEVEL_INFO[r.level];
+  return `
+    <div class="page result">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+        <div class="level-badge big" style="background:${info.color};margin:0 auto">${r.level}</div>
+        <h1>${r.level} · ${info.title}</h1>
+        <p class="muted">答对 ${r.correct} / ${r.total} 题</p>
+        <div class="card" style="text-align:left">${info.desc}</div>
+        ${r.weakSkills.length?`<p class="weak">本次薄弱点：${r.weakSkills.join('、')}</p>`:''}
+        <p class="muted small">建议跟练语速：${info.wpmLow}–${info.wpmHigh} 词/分</p>
+        <button class="btn primary" onclick="goMain()">进入我的训练</button>
+      </div>
+    </div>`;
+}
+
+function renderMain() {
+  const info = LEVEL_INFO[state.level];
+  const tabs = [
+    {id:'material',icon:'📚',label:'素材'},
+    {id:'shadowing',icon:'🎤',label:'跟练'},
+    {id:'homework',icon:'📝',label:'作业'},
+    {id:'profile',icon:'👤',label:'我的'},
+  ];
+  const titles = { material:'口语素材', shadowing:'跟练评分', homework:'口语作业', profile:'我的' };
+  let body = '';
+  if (state.tab==='material') body = renderMaterial();
+  else if (state.tab==='shadowing') body = renderShadowing();
+  else if (state.tab==='homework') body = renderHomework();
+  else body = renderProfile();
+  return `
+    <div class="page with-nav">
+      <div class="topbar">
+        <div class="topbar-title">${titles[state.tab]}</div>
+        <div class="level-chip" style="background:${info.color}20;color:${info.color}">${state.level}</div>
+      </div>
+      <div class="content">${body}</div>
+      <div class="bottom-nav">
+        ${tabs.map(t=>`
+          <button class="nav-item ${state.tab===t.id?'active':''}" onclick="switchTab('${t.id}')">
+            <span class="nav-icon">${t.icon}</span>
+            <span class="nav-label">${t.label}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderMaterial() {
+  const info = LEVEL_INFO[state.level];
+  const list = MATERIALS.filter(m => LEVELS.indexOf(m.level) <= LEVELS.indexOf(state.level))
+    .sort((a,b)=> LEVELS.indexOf(b.level)-LEVELS.indexOf(a.level));
+  return `
+    <div class="card highlight" style="border-left-color:${info.color}">
+      <div class="bold">当前等级：${state.level} ${info.title}</div>
+      <div class="muted small" style="margin-top:6px;line-height:1.5">${info.desc}</div>
+    </div>
+    <div class="section-title">推荐素材（共 ${list.length} 套）</div>
+    ${list.map(m=>`
+      <div class="card tap" onclick="openMaterial('${m.id}')">
+        <div class="row">
+          <div class="level-dot" style="background:${LEVEL_INFO[m.level].color}">${m.level}</div>
+          <div style="flex:1">
+            <div class="bold">${m.title}</div>
+            <div class="muted small">${m.scene} · ${m.sentences.length} 个句子</div>
+          </div>
+          <div class="chev">›</div>
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+function renderMaterialDetail() {
+  const m = state.materialDetail;
+  const info = LEVEL_INFO[m.level];
+  return `
+    <div class="page">
+      <div class="topbar">
+        <button class="back" onclick="backToMain()">←</button>
+        <div class="topbar-title" style="flex:1">${m.title}</div>
+      </div>
+      <div class="content">
+        <p class="muted small">${m.scene} · <span style="color:${info.color};font-weight:600">${m.level}</span></p>
+        ${m.sentences.map((s,i)=>`
+          <div class="card">
+            <div class="row" style="align-items:flex-start">
+              <div class="sentence-en">${s.en}</div>
+              <button class="icon-btn" onclick="speakInMaterial(${i})">🔊</button>
+            </div>
+            <div class="muted" style="margin-top:8px">${s.zh}</div>
+            <div class="tip">💡 ${s.tip}</div>
+          </div>`).join('')}
+        <button class="btn ghost" onclick="backToMain()">返回素材列表</button>
+      </div>
+    </div>`;
+}
+
+function renderShadowing() {
+  const info = LEVEL_INFO[state.level];
+  const sentences = getSentences(state.level);
+  if (!sentences.length) return '<p class="muted">暂无素材</p>';
+  const idx = Math.min(state.selectedSentence, sentences.length-1);
+  const s = sentences[idx];
+  const best = state.bestWpm[s.en];
+
+  let resultHtml = '';
+  if (state.lastTraining) {
+    const t = state.lastTraining;
+    const simColor = t.sim>=0.8?'#4caf50':t.sim>=0.5?'#ff9800':'#e53935';
+    const wpmOk = t.wpm>=info.wpmLow && t.wpm<=info.wpmHigh;
+    const wpmColor = wpmOk?'#4caf50':'#ff9800';
+
+    let aiHtml = '';
+    if (state.aiLoading) {
+      aiHtml = `<div class="ai-card"><div class="ai-header"><span class="spinner"></span>AI 正在评分…</div></div>`;
+    } else if (t.ai) {
+      const a = t.ai;
+      aiHtml = `
+        <div class="ai-card">
+          <div class="ai-header">🤖 AI 三维评分</div>
+          <div class="ai-scores">
+            <div class="ai-score-box"><div class="ai-score-num">${a.accuracy}</div><div class="ai-score-label">发音准确</div></div>
+            <div class="ai-score-box"><div class="ai-score-num">${a.grammar}</div><div class="ai-score-label">语法</div></div>
+            <div class="ai-score-box"><div class="ai-score-num">${a.fluency}</div><div class="ai-score-label">流利度</div></div>
+          </div>
+          ${a.advice?`<div class="ai-advice">💬 ${a.advice}</div>`:''}
+        </div>`;
+    } else if (t.aiError) {
+      aiHtml = `<div class="ai-card"><div class="ai-header">🤖 AI 评分</div><div class="status-err">${t.aiError}</div></div>`;
+    }
+
+    resultHtml = `
+      <div class="card" style="background:#e0f2f1;margin-top:16px">
+        <div class="bold" style="margin-bottom:12px">本次结果</div>
+        <div class="metric-row"><span class="metric-label">语音相似度</span><span class="metric-value" style="color:${simColor}">${Math.round(t.sim*100)}%</span></div>
+        <div class="metric-row"><span class="metric-label">语速</span><span class="metric-value" style="color:${wpmColor}">${t.wpm} 词/分</span></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #b2dfdb;line-height:1.6;font-size:14px;color:#37474f">${t.feedback}</div>
+      </div>
+      ${aiHtml}`;
+  }
+
+  return `
+    <div class="card" style="background:${info.color}10;margin-bottom:12px">
+      <div class="row"><span>⚡</span><span class="small">目标语速 ${info.wpmLow}–${info.wpmHigh} 词/分（${state.level}）</span></div>
+    </div>
+    <select class="select" onchange="changeSentence(this.value)" ${state.recording?'disabled':''}>
+      ${sentences.map((x,i)=>`<option value="${i}" ${i===idx?'selected':''}>${i+1}. ${x.en}</option>`).join('')}
+    </select>
+    <div class="card sentence-card">
+      <div class="row" style="align-items:flex-start">
+        <div class="sentence-en">${s.en}</div>
+        <button class="icon-btn" onclick="speakCurrent()">🔊</button>
+      </div>
+      <div class="muted" style="margin-top:8px">${s.zh}</div>
+      <div class="tip">💡 ${s.tip}</div>
+    </div>
+    ${state.recording?`
+      <div class="recording-box">
+        <div class="timer">${state.seconds} 秒</div>
+        <div class="recognized">${state.recognized?'识别到：'+state.recognized:'正在听你说，请大声朗读…'}</div>
+      </div>`:''}
+    <button class="btn ${state.recording?'danger':'primary'}" onclick="${state.recording?'stopRecording()':'startRecording()'}">
+      ${state.recording?'⏹ 结束朗读':'🎤 开始跟读'}
+    </button>
+    ${resultHtml}
+    ${best?`<p class="muted small" style="text-align:center;margin-top:12px">这句最佳记录：${best} 词/分</p>`:''}
+  `;
+}
+
+function renderHomework() {
+  const info = LEVEL_INFO[state.level];
+  const list = HOMEWORK.filter(h => h.level===state.level);
+  const done = list.filter(h => state.homeworkDone[h.id]).length;
+  const pct = list.length ? done/list.length*100 : 0;
+  return `
+    <div class="card highlight" style="border-left-color:${info.color}">
+      <div class="bold">${state.level} 口语作业</div>
+      <div class="progress" style="margin-top:10px"><div class="progress-bar" style="width:${pct}%;background:${info.color}"></div></div>
+      <div class="muted small" style="margin-top:6px">已完成 ${done} / ${list.length}</div>
+    </div>
+    ${list.map(h=>`
+      <label class="card tap homework-item ${state.homeworkDone[h.id]?'done':''}">
+        <input type="checkbox" ${state.homeworkDone[h.id]?'checked':''} onchange="toggleHomework('${h.id}')">
+        <div style="flex:1">
+          <div class="bold">${h.title}</div>
+          <div class="muted small" style="margin-top:4px;line-height:1.5">${h.detail}</div>
+        </div>
+      </label>`).join('')}
+  `;
+}
+
+function renderProfile() {
+  const info = LEVEL_INFO[state.level];
+  const records = state.records.slice(0,5);
+  const doneCount = Object.values(state.homeworkDone).filter(Boolean).length;
+  const aiOn = aiEnabled();
+  return `
+    <div class="card center">
+      <div class="level-badge big" style="background:${info.color};margin:0 auto">${state.level}</div>
+      <div class="bold" style="margin-top:12px;font-size:18px">${state.level} · ${info.title}</div>
+      <div class="muted small" style="margin-top:8px;line-height:1.5">${info.desc}</div>
+      <div class="chip" style="margin-top:12px">目标语速 ${info.wpmLow}–${info.wpmHigh} 词/分</div>
+    </div>
+    <div class="card row" style="text-align:center">
+      <div style="flex:1"><div class="bold" style="font-size:22px">${doneCount}</div><div class="muted small">已完成作业</div></div>
+      <div style="flex:1"><div class="bold" style="font-size:22px">${state.records.length}</div><div class="muted small">跟练次数</div></div>
+      <div style="flex:1"><div class="bold" style="font-size:22px">${Object.keys(state.bestWpm).length}</div><div class="muted small">最佳记录句</div></div>
+    </div>
+    <div class="card tap" onclick="openSettings()">
+      <div class="row">
+        <span style="font-size:22px">🤖</span>
+        <div style="flex:1">
+          <div class="bold">AI 评分设置</div>
+          <div class="muted small" style="margin-top:2px">${aiOn?'已配置 · '+state.aiConfig.model:'未配置（当前使用本地评分）'}</div>
+        </div>
+        <span class="chev">›</span>
+      </div>
+    </div>
+    ${records.length?`
+      <div class="section-title">最近跟练</div>
+      ${records.map(r=>`
+        <div class="card">
+          <div class="small bold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.sentence}</div>
+          <div class="muted small" style="margin-top:4px">
+            相似度 ${Math.round(r.sim*100)}% · ${r.wpm} 词/分${r.ai?' · AI '+Math.round((r.ai.accuracy+r.ai.grammar+r.ai.fluency)/3)+'分':''}
+          </div>
+        </div>`).join('')}
+    `:''}
+    <button class="btn ghost" onclick="startTest()">重新测试水平</button>
+    <button class="btn ghost danger-text" onclick="resetAll()">重置所有数据</button>
+  `;
+}
+
+function renderSettings() {
+  const c = state.aiConfig;
+  const t = state.aiTestResult;
+  return `
+    <div class="page">
+      <div class="topbar">
+        <button class="back" onclick="backToMain()">←</button>
+        <div class="topbar-title" style="flex:1">AI 评分设置</div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="bold" style="margin-bottom:8px">怎么用？</div>
+          <div class="muted small" style="line-height:1.7">
+            1. 去 <b>硅基流动</b>（siliconflow.cn）注册，创建 API Key（有免费额度）<br>
+            2. 把下面三项填好，点「测试连接」<br>
+            3. 通过后回到跟练页，每次结束朗读会自动多出 AI 三维评分<br>
+            <br>
+            <b>安全提示：</b>Key 只存在你手机本地，不会上传，但别把页面分享给不信任的人。<br>
+            <b>常见问题：</b>如果测试失败提示 CORS，说明该接口不允许浏览器直连，建议换硅基流动。
+          </div>
+        </div>
+        <div class="card">
+          <div class="field-label">API 地址（Endpoint）</div>
+          <input class="input" id="cfgEndpoint" value="${escapeHtml(c.endpoint)}" placeholder="https://api.siliconflow.cn/v1/chat/completions">
+          <div class="field-label">API Key</div>
+          <input class="input" id="cfgKey" type="password" value="${escapeHtml(c.apiKey)}" placeholder="sk-...">
+          <div class="field-label">模型名称</div>
+          <input class="input" id="cfgModel" value="${escapeHtml(c.model)}" placeholder="Qwen/Qwen2.5-7B-Instruct">
+          <div class="row" style="margin-top:8px">
+            <button class="btn primary mini" onclick="saveAIConfig()">保存配置</button>
+            <button class="btn ghost mini" onclick="testAIConnection()">测试连接</button>
+          </div>
+          ${t ? (t.loading ? `<div class="status-ok"><span class="spinner"></span>正在测试…</div>` :
+            t.ok ? `<div class="status-ok">✅ ${escapeHtml(t.msg)}</div>` :
+            `<div class="status-err">❌ ${escapeHtml(t.msg).replace(/\n/g,'<br>')}</div>`) : ''}
+        </div>
+        <div class="card">
+          <div class="bold" style="margin-bottom:8px">常用接口参考</div>
+          <div class="muted small" style="line-height:1.9">
+            <b>硅基流动</b>（推荐，支持浏览器直连）<br>
+            Endpoint：https://api.siliconflow.cn/v1/chat/completions<br>
+            模型：Qwen/Qwen2.5-7B-Instruct<br><br>
+            <b>DeepSeek</b>（便宜，但可能 CORS 失败）<br>
+            Endpoint：https://api.deepseek.com/v1/chat/completions<br>
+            模型：deepseek-chat
+          </div>
+        </div>
+        <button class="btn ghost danger-text" onclick="clearAIConfig()">清除 AI 配置</button>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ==================== 事件 ====================
+function startTest() {
+  state.testSet = buildTestSet();
+  state.testIndex = 0;
+  state.testAnswers = [];
+  state.lastResult = null;
+  state.view = 'test';
+  window.scrollTo(0,0); render();
+}
+function selectAnswer(i) { state.testAnswers[state.testIndex] = i; render(); }
+function nextQuestion() {
+  if (state.testAnswers[state.testIndex]===undefined) return;
+  if (state.testIndex < state.testSet.length-1) {
+    state.testIndex++; window.scrollTo(0,0); render();
+  } else finishTest();
+}
+function finishTest() {
+  let score=0, max=0, correct=0; const wrong={};
+  state.testSet.forEach((q,i)=>{
+    const w = LEVELS.indexOf(q.level)+1;
+    max += w;
+    if (state.testAnswers[i]===q.answer) { score+=w; correct++; }
+    else wrong[q.skill] = (wrong[q.skill]||0)+1;
+  });
+  const p = max ? score/max : 0;
+  let level;
+  if (p<0.15) level='A1'; else if (p<0.33) level='A2'; else if (p<0.52) level='B1';
+  else if (p<0.70) level='B2'; else if (p<0.86) level='C1'; else level='C2';
+  const weak = Object.entries(wrong).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
+  state.level = level;
+  state.lastResult = { level, correct, total: state.testSet.length, weakSkills: weak };
+  state.view = 'result';
+  state.selectedSentence = 0;
+  state.lastTraining = null;
+  save(); window.scrollTo(0,0); render();
+}
+function goMain() { state.view='main'; state.tab='material'; window.scrollTo(0,0); render(); }
+function switchTab(t) {
+  if (state.recording) { alert('请先结束当前跟读'); return; }
+  state.tab = t; state.lastTraining = null; window.scrollTo(0,0); render();
+}
+function openMaterial(id) {
+  state.materialDetail = MATERIALS.find(m=>m.id===id);
+  state.view = 'material_detail'; window.scrollTo(0,0); render();
+}
+function backToMain() {
+  state.view='main'; state.materialDetail=null; state.aiTestResult=null;
+  window.scrollTo(0,0); render();
+}
+function openSettings() { state.view='settings'; state.aiTestResult=null; window.scrollTo(0,0); render(); }
+function changeSentence(v) { state.selectedSentence = parseInt(v); state.lastTraining = null; render(); }
+function speakCurrent() {
+  const list = getSentences(state.level);
+  const s = list[Math.min(state.selectedSentence, list.length-1)];
+  if (s) speak(s.en);
+}
+function speakInMaterial(i) { if (state.materialDetail) speak(state.materialDetail.sentences[i].en); }
+function toggleHomework(id) { state.homeworkDone[id]=!state.homeworkDone[id]; save(); render(); }
+function resetAll() {
+  if (!confirm('确定要清除所有数据并重新开始吗？')) return;
+  try { localStorage.removeItem('speakup_v2'); localStorage.removeItem('speakup_v1'); } catch(e){}
+  state.view='welcome'; state.tab='material'; state.level=null;
+  state.testSet=[]; state.testIndex=0; state.testAnswers=[]; state.lastResult=null;
+  state.selectedSentence=0; state.recording=false; state.seconds=0; state.recognized='';
+  state.lastTraining=null; state.aiLoading=false;
+  state.homeworkDone={}; state.bestWpm={}; state.records=[];
+  state.materialDetail=null; state.speechUnavailable=false;
+  state.aiConfig={ endpoint:'', apiKey:'', model:'Qwen/Qwen2.5-7B-Instruct' };
+  state.aiTestResult=null;
+  window.scrollTo(0,0); render();
+}
+
+function saveAIConfig() {
+  state.aiConfig = {
+    endpoint: document.getElementById('cfgEndpoint').value.trim(),
+    apiKey: document.getElementById('cfgKey').value.trim(),
+    model: document.getElementById('cfgModel').value.trim(),
+  };
+  save();
+  state.aiTestResult = { ok:true, msg:'配置已保存' };
+  render();
+}
+function clearAIConfig() {
+  if (!confirm('确定清除 AI 配置吗？')) return;
+  state.aiConfig = { endpoint:'', apiKey:'', model:'Qwen/Qwen2.5-7B-Instruct' };
+  state.aiTestResult = null;
+  save(); render();
+}
+
+// ==================== 录音 ====================
+function startRecording() {
+  state.recording = true; state.seconds = 0; state.recognized = '';
+  state.lastTraining = null; state.aiLoading = false;
+  render();
+  timerId = setInterval(()=>{
+    state.seconds++;
+    const el = document.querySelector('.timer');
+    if (el) el.textContent = state.seconds + ' 秒';
+  }, 1000);
+  startRecognition();
+}
+function startRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    state.speechUnavailable = true;
+    const el = document.querySelector('.recognized');
+    if (el) el.textContent = '⚠️ 当前浏览器不支持语音识别，仅计时算语速';
+    return;
+  }
+  try {
+    recognition = new SR();
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (e)=>{
+      let text = '';
+      for (let i=0;i<e.results.length;i++) text += e.results[i][0].transcript + ' ';
+      state.recognized = text.trim();
+      const el = document.querySelector('.recognized');
+      if (el) el.textContent = state.recognized ? '识别到：' + state.recognized : '正在听你说…';
+    };
+    recognition.onerror = (e)=>{
+      console.log('speech error:', e.error);
+      if (e.error==='not-allowed' || e.error==='service-not-allowed') {
+        state.speechUnavailable = true;
+        const el = document.querySelector('.recognized');
+        if (el) el.textContent = '⚠️ 麦克风或语音识别不可用（需要 HTTPS 环境）';
+      }
+    };
+    recognition.start();
+  } catch(e) { console.log(e); state.speechUnavailable = true; }
+}
+function stopRecording() {
+  state.recording = false;
+  clearInterval(timerId); timerId = null;
+  if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
+
+  const list = getSentences(state.level);
+  const s = list[Math.min(state.selectedSentence, list.length-1)];
+  const sec = Math.max(state.seconds, 1);
+  const wpm = Math.round(wordCount(s.en)/sec*60);
+  const sim = similarity(state.recognized, s.en);
+  const info = LEVEL_INFO[state.level];
+
+  let feedback;
+  if (!state.recognized && state.speechUnavailable) feedback = `语音识别不可用，仅给出语速参考（目标 ${info.wpmLow}–${info.wpmHigh} 词/分）。`;
+  else if (sim>=0.85) feedback = '发音很准，几乎每个词都识别正确。';
+  else if (sim>=0.6) feedback = '大部分词读对了，有少数词没被识别，建议再听一遍示范。';
+  else if (sim>0) feedback = '识别到的词比较少，可能是发音或麦克风问题，放慢速度再试。';
+  else feedback = '没有识别到语音，请确认麦克风权限。';
+
+  if (wpm < info.wpmLow) feedback += ` 语速偏慢（目标 ${info.wpmLow}–${info.wpmHigh} 词/分），试着把词连起来。`;
+  else if (wpm > info.wpmHigh) feedback += ' 语速偏快，注意清晰度和重音，别吞音。';
+  else feedback += ' 语速在目标区间内，节奏不错。';
+
+  const training = { sentence:s.en, wpm, sim, feedback, time:Date.now() };
+  state.lastTraining = training;
+
+  if (!state.bestWpm[s.en] || wpm > state.bestWpm[s.en]) state.bestWpm[s.en] = wpm;
+  state.records.unshift(training);
+  if (state.records.length > 50) state.records.pop();
+  save();
+
+  if (aiEnabled()) {
+    state.aiLoading = true;
+    render();
+    requestAIScore(state.recognized, s.en)
+      .then(ai => {
+        if (state.lastTraining !== training) return; // 用户已经切走
+        state.aiLoading = false;
+        training.ai = ai;
+        save(); render();
+      })
+      .catch(err => {
+        if (state.lastTraining !== training) return;
+        state.aiLoading = false;
+        training.aiError = 'AI 评分失败：' + (err.message || err);
+        render();
+      });
+  } else {
+    render();
+  }
+}
+
+// ==================== 启动 ====================
+load();
+if (state.level) state.view = 'main';
+render();
+</script>
+</body>
+</html>
